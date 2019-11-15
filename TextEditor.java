@@ -71,7 +71,9 @@ public class TextEditor extends JFrame {
         buttonSave.setToolTipText("Quick save");
         buttonSave.setBounds(10, 2, 38, 38);
         buttonSave.addActionListener(e -> {
-            getPathToSave();
+            if(jfc.getSelectedFile() == null) {
+                getPathToSave();
+            }
             saveTextToFile();
         });
 
