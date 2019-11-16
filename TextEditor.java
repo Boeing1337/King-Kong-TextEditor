@@ -23,7 +23,7 @@ public class TextEditor extends JFrame {
     }
 
     private void createUI() {
-        ImageIcon windowIcon = new ImageIcon("C:\\icon.png");
+        ImageIcon windowIcon = new ImageIcon("icon.png");
         setIconImage(windowIcon.getImage());
         setTitle("First stage");
         setSize(640, 480);
@@ -65,18 +65,20 @@ public class TextEditor extends JFrame {
         fieldSearch.setBounds(115, 8, super.getWidth() / 100 * 45, 25);
 
         JButton buttonSave = new JButton();
-        ImageIcon iconSave = new ImageIcon("C:\\save.png");
+        ImageIcon iconSave = new ImageIcon("save.png");
         buttonSave.setIcon(iconSave);
         buttonSave.setName("SaveButton");
         buttonSave.setToolTipText("Quick save");
         buttonSave.setBounds(10, 2, 38, 38);
         buttonSave.addActionListener(e -> {
-            getPathToSave();
+            if(jfc.getSelectedFile() == null) {
+                getPathToSave();
+            }
             saveTextToFile();
         });
 
         JButton buttonOpen = new JButton();
-        ImageIcon iconLoad = new ImageIcon("C:\\load.png");
+        ImageIcon iconLoad = new ImageIcon("load.png");
         buttonOpen.setIcon(iconLoad);
         buttonOpen.setName("OpenButton");
         buttonOpen.setToolTipText("Open file");
@@ -86,7 +88,7 @@ public class TextEditor extends JFrame {
         });
 
         JButton buttonSearch = new JButton();
-        ImageIcon iconSearch = new ImageIcon("C:\\search.png");
+        ImageIcon iconSearch = new ImageIcon("search.png");
         buttonSearch.setIcon(iconSearch);
         buttonSearch.setName("StartSearchButton");
         buttonSearch.setToolTipText("Start search");
@@ -99,7 +101,7 @@ public class TextEditor extends JFrame {
         });
 
         JButton buttonSearchPrevious = new JButton();
-        ImageIcon iconSearchPrevious = new ImageIcon("C:\\previous.png");
+        ImageIcon iconSearchPrevious = new ImageIcon("previous.png");
         buttonSearchPrevious.setIcon(iconSearchPrevious);
         buttonSearchPrevious.setName("PreviousMatchButton");
         buttonSearchPrevious.setToolTipText("Previous");
@@ -111,7 +113,7 @@ public class TextEditor extends JFrame {
         });
 
         JButton buttonSearchNext = new JButton();
-        ImageIcon iconSearchNext = new ImageIcon("C:\\next.png");
+        ImageIcon iconSearchNext = new ImageIcon("next.png");
         buttonSearchNext.setIcon(iconSearchNext);
         buttonSearchNext.setName("NextMatchButton");
         buttonSearchNext.setToolTipText("Next");
