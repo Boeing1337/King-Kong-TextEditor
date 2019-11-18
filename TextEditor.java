@@ -10,20 +10,27 @@ import java.util.ListIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TextEditor extends JFrame {
+final public class TextEditor extends JFrame {
 
-    private JTextArea jTextArea;
-    private JCheckBox checkBoxRegEx;
-    private JTextField fieldSearch;
-    private ListIterator<Coincidence> iteratorTextMatch = null;
+    private enum Direction {
+        NEXT,
+        PREVIOUS,
+    }
+
+    final private JTextArea jTextArea = new JTextArea();
+    final private JCheckBox checkBoxRegEx = new JCheckBox();
+    final private JTextField fieldSearch = new JTextField();
+
+    private CycleIterator<Coincidence> iteratorTextMatch;
+    private Coincidence matchObject;
     private JFileChooser jfc;
 
-    public TextEditor() {
+    private TextEditor() {
         SwingUtilities.invokeLater(this::createUI); //i don't know what is :: /// new runnable (Dispatch thread)
     }
 
     private void createUI() {
-        ImageIcon windowIcon = new ImageIcon("icon.png");
+        final ImageIcon windowIcon = new ImageIcon("C:\\icon.png");
         setIconImage(windowIcon.getImage());
         setTitle("First stage");
         setSize(640, 480);
@@ -38,10 +45,9 @@ public class TextEditor extends JFrame {
 
 ////////////////////////////////////TEXT AREA
 
-        jTextArea = new JTextArea();
         jTextArea.setName("TextArea");
 
-        JScrollPane textArea = new JScrollPane(jTextArea);
+        final JScrollPane textArea = new JScrollPane(jTextArea);
         textArea.setName("ScrollPane");
         textArea.setBounds(10, 40, super.getWidth() - 25, super.getHeight() / 100 * 90);
         textArea.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -50,35 +56,33 @@ public class TextEditor extends JFrame {
 
 /////////////////////////////////////JPANEL TOP
 
-        checkBoxRegEx = new JCheckBox();
         checkBoxRegEx.setName("UseRegExCheckbox");
         checkBoxRegEx.setBackground(Color.LIGHT_GRAY);
         checkBoxRegEx.setBounds(595, 14, 18, 13);
 
-        JLabel labelRegEx = new JLabel("REG EX");
+        final JLabel labelRegEx = new JLabel("REG EX");
         labelRegEx.setBounds(545, 8, 50, 25);////twice label for BOLD text
         JLabel labelRegEx2 = new JLabel("REG EX");
         labelRegEx.setBounds(545, 8, 50, 25);
 
-        fieldSearch = new JTextField();
         fieldSearch.setName("SearchField");
         fieldSearch.setBounds(115, 8, super.getWidth() / 100 * 45, 25);
 
-        JButton buttonSave = new JButton();
-        ImageIcon iconSave = new ImageIcon("save.png");
+        final JButton buttonSave = new JButton();
+        ImageIcon iconSave = new ImageIcon("C:\\save.png");
         buttonSave.setIcon(iconSave);
         buttonSave.setName("SaveButton");
         buttonSave.setToolTipText("Quick save");
         buttonSave.setBounds(10, 2, 38, 38);
         buttonSave.addActionListener(e -> {
-            if(jfc.getSelectedFile() == null) {
+            if (jfc.getSelectedFile() == null) {
                 getPathToSave();
             }
             saveTextToFile();
         });
 
-        JButton buttonOpen = new JButton();
-        ImageIcon iconLoad = new ImageIcon("load.png");
+        final JButton buttonOpen = new JButton();
+        ImageIcon iconLoad = new ImageIcon("C:\\load.png");
         buttonOpen.setIcon(iconLoad);
         buttonOpen.setName("OpenButton");
         buttonOpen.setToolTipText("Open file");
@@ -87,45 +91,46 @@ public class TextEditor extends JFrame {
             openTextFromFile();
         });
 
-        JButton buttonSearch = new JButton();
-        ImageIcon iconSearch = new ImageIcon("search.png");
+        final JButton buttonSearch = new JButton();
+        ImageIcon iconSearch = new ImageIcon("C:\\search.png");
         buttonSearch.setIcon(iconSearch);
         buttonSearch.setName("StartSearchButton");
         buttonSearch.setToolTipText("Start search");
         buttonSearch.setBounds(400, 2, 38, 38);
         buttonSearch.addActionListener(e -> {
             clearMatchesInfo();
-            if (!jTextArea.getText().isEmpty()) { ///Method possibleToSelect will not work for this way
+            if (!jTextArea.getText().isEmpty()) {
+                ///Method possibleToSelect will not work for this way
                 createCoincidences();
             }
         });
 
-        JButton buttonSearchPrevious = new JButton();
-        ImageIcon iconSearchPrevious = new ImageIcon("previous.png");
+        final JButton buttonSearchPrevious = new JButton();
+        ImageIcon iconSearchPrevious = new ImageIcon("C:\\previous.png");
         buttonSearchPrevious.setIcon(iconSearchPrevious);
         buttonSearchPrevious.setName("PreviousMatchButton");
         buttonSearchPrevious.setToolTipText("Previous");
         buttonSearchPrevious.setBounds(450, 2, 38, 38);
         buttonSearchPrevious.addActionListener(e -> {
             if (isPossibleToSearch()) {
-                highlightMatch("previous");
+                highlightMatch(Direction.PREVIOUS);
             }
         });
 
-        JButton buttonSearchNext = new JButton();
-        ImageIcon iconSearchNext = new ImageIcon("next.png");
+        final JButton buttonSearchNext = new JButton();
+        ImageIcon iconSearchNext = new ImageIcon("C:\\next.png");
         buttonSearchNext.setIcon(iconSearchNext);
         buttonSearchNext.setName("NextMatchButton");
         buttonSearchNext.setToolTipText("Next");
         buttonSearchNext.setBounds(500, 2, 38, 38);
         buttonSearchNext.addActionListener(e -> {
             if (isPossibleToSearch()) {
-                highlightMatch("next");
+                highlightMatch(Direction.NEXT);
             }
         });
 
 
-        JPanel topPanel = new JPanel();
+        final JPanel topPanel = new JPanel();
         topPanel.setLayout(null);
         topPanel.setBackground(Color.LIGHT_GRAY);
         topPanel.setBounds(0, 0, super.getWidth() - 15, 40);
@@ -142,29 +147,29 @@ public class TextEditor extends JFrame {
 
 ////////////////////////////////////////////MENU BAR
 
-        JMenuBar menuBar = new JMenuBar();
+        final JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
 //***********OPTION IN MENU::FILE*******************:
-        JMenu file = new JMenu("FIle");
+        final JMenu file = new JMenu("FIle");
         file.setName("MenuFile");
         file.setMnemonic(KeyEvent.VK_F);
         menuBar.add(file);
 
-        JMenuItem openMenuItem = new JMenuItem("Open");
+        final JMenuItem openMenuItem = new JMenuItem("Open");
         openMenuItem.setName("MenuOpen");
         openMenuItem.addActionListener(e -> {
             openTextFromFile();
         });
 
-        JMenuItem saveMenuItem = new JMenuItem("Save");
+        final JMenuItem saveMenuItem = new JMenuItem("Save");
         saveMenuItem.setName("MenuSave");
         saveMenuItem.addActionListener(e -> {
             getPathToSave();
             saveTextToFile();
         });
 
-        JMenuItem exitMenuItem = new JMenuItem("Exit");
+        final JMenuItem exitMenuItem = new JMenuItem("Exit");
         exitMenuItem.setName("MenuExit");
         exitMenuItem.addActionListener(e -> {
             System.exit(-2);
@@ -176,40 +181,41 @@ public class TextEditor extends JFrame {
         file.add(exitMenuItem);
 
 //***********OPTION IN MENU::SEARCH*******************:
-        JMenu search = new JMenu("Search");
+        final JMenu search = new JMenu("Search");
         search.setName("MenuSearch");
         search.setMnemonic(KeyEvent.VK_S);
         menuBar.add(search);
 
-        JMenuItem searchStart = new JMenuItem("Start search");
+        final JMenuItem searchStart = new JMenuItem("Start search");
         searchStart.setName("MenuStartSearch");
         search.add(searchStart);
         searchStart.addActionListener(e -> {
             clearMatchesInfo();
-            if (!jTextArea.getText().isEmpty()) { ///Method possibleToSelect will not work for this way
+            if (!jTextArea.getText().isEmpty()) {
+                ///Method possibleToSelect will not work for this way
                 createCoincidences();
             }
         });
 
-        JMenuItem searchPreviousMatch = new JMenuItem("Previous match");
+        final JMenuItem searchPreviousMatch = new JMenuItem("Previous match");
         searchPreviousMatch.setName("MenuPreviousMatch");
         search.add(searchPreviousMatch);
         searchPreviousMatch.addActionListener(e -> {
             if (isPossibleToSearch()) {
-                highlightMatch("previous");
+                highlightMatch(Direction.NEXT);
             }
         });
 
-        JMenuItem searchNextMatch = new JMenuItem("Next match");
+        final JMenuItem searchNextMatch = new JMenuItem("Next match");
         searchNextMatch.setName("MenuNextMatch");
         search.add(searchNextMatch);
         searchNextMatch.addActionListener(e -> {
             if (isPossibleToSearch()) {
-                highlightMatch("next");
+                highlightMatch(Direction.NEXT);
             }
         });
 
-        JMenuItem searchRegEx = new JMenuItem("Use regular Exp");
+        final JMenuItem searchRegEx = new JMenuItem("Use regular Exp");
         searchRegEx.setName("MenuUseRegExp");
         search.add(searchRegEx);
         searchRegEx.addActionListener(e -> {
@@ -231,7 +237,7 @@ public class TextEditor extends JFrame {
 
     private void saveTextToFile() {
         try {
-            FileWriter save = new FileWriter(jfc.getSelectedFile());
+            final FileWriter save = new FileWriter(jfc.getSelectedFile());
             save.write(jTextArea.getText());
             save.close();
         } catch (IOException ex) {
@@ -247,11 +253,10 @@ public class TextEditor extends JFrame {
         int returnValue = jfc.showOpenDialog(null);
 
         if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = jfc.getSelectedFile();
-            String path = selectedFile.getAbsolutePath();
+            final File selectedFile = jfc.getSelectedFile();
+            final String path = selectedFile.getAbsolutePath();
             try {
-                String texttext = Files.readString(Paths.get(path));
-                jTextArea.setText(texttext);
+                jTextArea.setText(Files.readString(Paths.get(path)));
             } catch (IOException ex) {
                 ex.printStackTrace();
                 System.out.println("uncorrected open file");
@@ -260,54 +265,36 @@ public class TextEditor extends JFrame {
     }
 
     private void clearMatchesInfo() {
-        next = false;
-        previous = false;
         matchObject = null;
         iteratorTextMatch = null;
     }
 
-    private String stringEscaping(String fieldText) {
-
-        StringBuilder string = new StringBuilder();
-
-        for (int i = 0; i < fieldText.length(); i++) {
-            String x = String.valueOf(fieldText.charAt(i));
+    private String stringEscaping() {
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < fieldSearch.getText().length(); i++) {
+            String x = String.valueOf(fieldSearch.getText().charAt(i));
             if (!x.matches("[\\h]") && x.matches("[\\W]")) {
-                string.append("\\");
+                buffer.append('\\');
             }
-            string.append(x);
+            buffer.append(x);
         }
-        fieldText = string.toString();
-        return fieldText;
-
+        return buffer.toString();
     }
-
 
     private void createCoincidences() {
-        String preparedSearchString = fieldSearch.getText();
         if (!checkBoxRegEx.isSelected()) {
-            preparedSearchString = stringEscaping(preparedSearchString);
+            new BackgroundWork(stringEscaping()).execute();
+        } else {
+            new BackgroundWork(fieldSearch.getText()).execute();
         }
-
-        new BackgroundWork(preparedSearchString).execute();
-
     }
 
-    private Coincidence matchObject;
-
-    private void highlightMatch(String direction) {
-        correctIterator(direction);
-
-        if ("next".equals(direction)) {
-            if (!iteratorTextMatch.hasNext()) {
-                rollIterator(direction);
-            }
+    private void highlightMatch(Direction dir) {
+        if ("NEXT".equals(dir.name())) {
             matchObject = iteratorTextMatch.next();
         }
-        if ("previous".equals(direction)) {
-            if (!iteratorTextMatch.hasPrevious()) {
-                rollIterator(direction);
-            }
+        if ("PREVIOUS".equals(dir.name())) {
+
             matchObject = iteratorTextMatch.previous();
         }
 
@@ -315,46 +302,14 @@ public class TextEditor extends JFrame {
             jTextArea.setCaretPosition(matchObject.getEnd());
             jTextArea.select(matchObject.getFirst(), matchObject.getEnd());
             jTextArea.grabFocus();
-            System.out.println(matchObject.getFirst() + " " + " " + matchObject.getEnd());
         }
     }
 
-    private boolean next = false;
-    private boolean previous = false;
-
-    private void correctIterator(String direction) {
-        if ("next".equals(direction)) {
-            if (previous) {
-                previous = false;
-                iteratorTextMatch.next();
-            }
-            next = true;
-        }
-        if ("previous".equals(direction)) {
-            if (next) {
-                next = false;
-                iteratorTextMatch.previous();
-            }
-            previous = true;
-        }
-    }
-
-    private void rollIterator(String direction) {
-        if ("next".equals(direction)) {
-            while (iteratorTextMatch.hasPrevious()) {
-                iteratorTextMatch.previous();
-            }
-        }
-        if ("previous".equals(direction)) {
-            while (iteratorTextMatch.hasNext()) {
-                iteratorTextMatch.next();
-            }
-        }
-    }
 
     private boolean isGroupNotChanged() {
-        String group = jTextArea.getText().substring(matchObject.getFirst(), matchObject.getEnd());
-        return matchObject.getCoincidence().equals(group);
+        String str = jTextArea.getText().substring(
+                matchObject.getFirst(), matchObject.getEnd());
+        return matchObject.getGroup().equals(str);
     }
 
     private boolean isPossibleToSearch() {
@@ -363,8 +318,7 @@ public class TextEditor extends JFrame {
 
 
     private class BackgroundWork extends SwingWorker<Void, Object> {
-        String fieldText;
-
+        private String fieldText;
 
         BackgroundWork(String fieldText) {
             this.fieldText = fieldText;
@@ -373,30 +327,29 @@ public class TextEditor extends JFrame {
         @Override
         public Void doInBackground() {
 
-            Matcher matcher = Pattern.compile(fieldText).matcher(jTextArea.getText());
-            ArrayList<Coincidence> listOfCoincidence = new ArrayList<>();
+            final Matcher matcher = Pattern.compile(fieldText).matcher(jTextArea.getText());
+            final ArrayList<Coincidence> listOfCoincidence = new ArrayList<>();
 
             while (matcher.find()) {
                 listOfCoincidence.add(new Coincidence(matcher.start(), matcher.end(), matcher.group()));
             }
 
-            iteratorTextMatch = listOfCoincidence.listIterator();
+            iteratorTextMatch = new CycleIterator<>(listOfCoincidence);
 
-            highlightMatch("next");///first call always next;
+            highlightMatch(Direction.NEXT);///first call always 0;
             return null;
         }
-
     }
 
     private static class Coincidence {
-        private int first;
-        private int end;
-        private String coincidence;
+        final private int first;
+        final private int end;
+        final private String group;
 
-        Coincidence(int first, int end, String coincidence) {
+        Coincidence(final int first, final int end, final String group) {
             this.first = first;
             this.end = end;
-            this.coincidence = coincidence;
+            this.group = group;
         }
 
         int getFirst() {
@@ -407,18 +360,79 @@ public class TextEditor extends JFrame {
             return end;
         }
 
-        String getCoincidence() {
-            return coincidence;
+        String getGroup() {
+            return group;
         }
     }
 
-    public static void main(String[] args) {
-        new TextEditor();
+    private static class CycleIterator<T> implements ListIterator<T> {
+        private final ArrayList<T> list;
+        private int pos = -1;
+
+        CycleIterator(ArrayList<T> list) {
+            this.list = list;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return pos != list.size() - 1;
+        }
+
+        @Override
+        public T next() {
+            if (hasNext()) {
+                pos++;
+                return list.get(pos);
+            } else {
+                pos = 0;
+                return list.get(pos);
+            }
+
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return pos != 0;
+        }
+
+        @Override
+        public T previous() {
+            if (hasPrevious()) {
+                pos--;
+                return list.get(pos);
+            } else {
+                pos = list.size() - 1;
+                return list.get(pos);
+            }
+        }
+
+        @Override
+        public int nextIndex() {
+            return 0;
+        }
+
+        @Override
+        public int previousIndex() {
+            return 0;
+        }
+
+        @Override
+        public void remove() {
+        }
+
+        @Override
+        public void set(Object o) {
+        }
+
+        @Override
+        public void add(T o) {
+            list.add(o);
+        }
     }
 
+    public static void main(final String[] args) {
+        new TextEditor();
+    }
 }
-
-
-
 
 
